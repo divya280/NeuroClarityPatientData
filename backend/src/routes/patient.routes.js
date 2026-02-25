@@ -5,7 +5,9 @@ import {
   getPatients, 
   updateStatus, 
   uploadZip, 
-  uploadPdf 
+  uploadPdf,
+  updatePatient,
+  deletePatient
 } from "../controllers/patient.controller.js";
 import { verifyToken, isAdmin } from "../middleware/auth.js";
 
@@ -20,9 +22,11 @@ const upload = multer({
 // All patient routes are protected
 router.use(verifyToken);
 
-// Shared / EndUser
+// Shared / EndUser / Admin (Ownership checks in controller)
 router.post("/", createPatient);
 router.get("/", getPatients);
+router.put("/:id", updatePatient);
+router.delete("/:id", deletePatient);
 router.post("/upload-zip", upload.single("file"), uploadZip);
 
 // Admin Only

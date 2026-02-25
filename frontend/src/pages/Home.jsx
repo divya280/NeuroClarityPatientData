@@ -98,7 +98,7 @@ const Home = () => {
               Start Free Registration <ArrowRight size={18} />
             </Link>
             <Link to="/login" className="btn-secondary" style={{ fontSize: '1.0625rem', padding: '1rem 2rem', borderRadius: '1.25rem' }}>
-              Medical Staff Login
+              Login
             </Link>
           </div>
         </div>

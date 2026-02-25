@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { FileText, Download, Clock, CheckCircle, AlertCircle, Plus, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { FileText, Download, Clock, CheckCircle, AlertCircle, Plus, Search, Edit2, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const getStatusStyle = (status) => {
   switch(status) {
@@ -24,7 +24,7 @@ const UserDashboard = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const { getToken } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => { fetchPatients(); }, []);
 
@@ -35,6 +35,17 @@ const UserDashboard = () => {
       setPatients(res.data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this record? This will also remove all associated files.')) return;
+    try {
+      const token = await getToken();
+      await axios.delete(`http://localhost:3000/api/patients/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchPatients();
+    } catch (err) {
+      alert('Failed to delete record: ' + (err.response?.data?.error || err.message));
+    }
   };
 
   const filtered = patients.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.scanType.toLowerCase().includes(search.toLowerCase()));
@@ -63,7 +74,7 @@ const UserDashboard = () => {
           <p style={{ color: '#94a3b8', fontWeight: 500, marginTop: '0.25rem' }}>Manage and track neuro-radiological records</p>
         </div>
         <Link to="/patient-form" className="btn-primary">
-          <Plus size={18} /> New Submission
+          <Plus size={18} /> Add New Patient data
         </Link>
       </div>
 
@@ -96,14 +107,14 @@ const UserDashboard = () => {
           <div style={{ padding: '5rem', textAlign: 'center' }}>
             <div style={{ width: '5rem', height: '5rem', background: '#f4f7fb', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', color: '#cbd5e1' }}><FileText size={36} /></div>
             <h3 style={{ fontWeight: 800, color: '#020817', marginBottom: '0.5rem' }}>No records found</h3>
-            <p style={{ color: '#94a3b8' }}>Create a new patient submission to get started.</p>
+            <p style={{ color: '#94a3b8' }}>Click "Add New Patient data" to get started.</p>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {['Patient', 'Age / Sex', 'Scan Type', 'Status', 'Report'].map(h => (
+                  {['S.No', 'Name', 'Age', 'Scan', 'Status', 'Report', 'Actions'].map(h => (
                     <th key={h} style={{ padding: '0.875rem 1.5rem', textAlign: 'left', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</th>
                   ))}
                 </tr>
@@ -115,6 +126,7 @@ const UserDashboard = () => {
                     <tr key={p.id} style={{ borderTop: '1px solid #f4f7fb' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={{ padding: '1rem 1.5rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 600 }}>{i + 1}</td>
                       <td style={{ padding: '1rem 1.5rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           <div style={{ width: '2.25rem', height: '2.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#2563eb', fontSize: '0.9rem' }}>
@@ -126,7 +138,7 @@ const UserDashboard = () => {
                           </div>
                         </div>
                       </td>
-                      <td style={{ padding: '1rem 1.5rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 600 }}>{p.age}y / {p.sex}</td>
+                      <td style={{ padding: '1rem 1.5rem', color: '#64748b', fontSize: '0.875rem', fontWeight: 600 }}>{p.age}y</td>
                       <td style={{ padding: '1rem 1.5rem' }}>
                         <span style={{ padding: '0.3rem 0.75rem', background: '#f4f7fb', border: '1px solid #e2eaf5', borderRadius: '0.5rem', fontSize: '0.75rem', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{p.scanType}</span>
                       </td>
@@ -141,8 +153,26 @@ const UserDashboard = () => {
                             <Download size={15} /> Download
                           </a>
                         ) : (
-                          <span style={{ color: '#cbd5e1', fontSize: '0.75rem', fontStyle: 'italic' }}>In Analysis</span>
+                          <span style={{ color: '#cbd5e1', fontSize: '0.75rem', fontStyle: 'italic' }}>Pending</span>
                         )}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button 
+                            onClick={() => navigate('/patient-form', { state: { editMode: true, patient: p } })}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6366f1', padding: '0.25rem' }}
+                            title="Edit Record"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(p.id)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0.25rem' }}
+                            title="Delete Record"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

@@ -178,3 +178,80 @@ export const uploadPdf = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/**
+ * Update patient record (Owner or Admin).
+ */
+export const updatePatient = async (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+  const { uid, role } = req.user;
+
+  try {
+    const docRef = db.collection("patients").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) return res.status(404).json({ error: "Patient not found." });
+
+    const patientData = doc.data();
+    // Only allow owner or admin to update
+    if (role !== "admin" && patientData.createdBy !== uid) {
+      return res.status(403).json({ error: "Unauthorized to update this record." });
+    }
+
+    // Prevent overwriting internal fields like createdBy or file URLs directly
+    const { name, age, sex, complaints, scanType } = updates;
+    const cleanUpdates = {
+      ...(name && { name }),
+      ...(age && { age }),
+      ...(sex && { sex }),
+      ...(complaints && { complaints }),
+      ...(scanType && { scanType }),
+      updatedAt: new Date().toISOString()
+    };
+
+    await docRef.update(cleanUpdates);
+    res.json({ message: "Patient record updated successfully." });
+  } catch (error) {
+    console.error("Update Patient Error:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Delete patient record (Owner or Admin).
+ * Also cleans up associated files in Storage.
+ */
+export const deletePatient = async (req, res) => {
+  const { id } = req.params;
+  const { uid, role } = req.user;
+
+  try {
+    const docRef = db.collection("patients").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) return res.status(404).json({ error: "Patient not found." });
+
+    const patientData = doc.data();
+    // Only allow owner or admin to delete
+    if (role !== "admin" && patientData.createdBy !== uid) {
+      return res.status(403).json({ error: "Unauthorized to delete this record." });
+    }
+
+    // Clean up Storage files (scans and reports)
+    const prefix = `patients/${id}/`;
+    try {
+      await storage.deleteFiles({ prefix });
+      console.log(`[deletePatient] Files with prefix ${prefix} deleted from Storage.`);
+    } catch (err) {
+      // Non-fatal if folder doesn't exist
+      console.warn(`[deletePatient] Storage cleanup warning: ${err.message}`);
+    }
+
+    await docRef.delete();
+    res.json({ message: "Patient record and associated files deleted successfully." });
+  } catch (error) {
+    console.error("Delete Patient Error:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

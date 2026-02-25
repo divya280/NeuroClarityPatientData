@@ -1,17 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Clipboard, Upload, Check, ArrowLeft, Stethoscope, ChevronRight, ShieldCheck } from 'lucide-react';
 
 const PatientForm = () => {
-  const [formData, setFormData] = useState({ name: '', age: '', sex: 'Male', complaints: '', scanType: 'MRI' });
+  const navigate = useNavigate();
+  const location = useLocation();
+  const editMode = location.state?.editMode || false;
+  const existingPatient = location.state?.patient;
+
+  const [formData, setFormData] = useState({ 
+    name: existingPatient?.name || '', 
+    age: existingPatient?.age || '', 
+    sex: existingPatient?.sex || 'Male', 
+    complaints: existingPatient?.complaints || '', 
+    scanType: existingPatient?.scanType || 'MRI' 
+  });
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const { getToken } = useAuth();
-  const navigate = useNavigate();
 
   const handleChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
   const handleFile = e => {
@@ -22,14 +32,29 @@ const PatientForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) { setError('Clinical scan data (ZIP) is required.'); return; }
+    if (!editMode && !file) { setError('Clinical scan data (ZIP) is required.'); return; }
     setLoading(true); setError('');
     try {
       const token = await getToken();
-      const res = await axios.post('http://localhost:3000/api/patients', formData, { headers: { Authorization: `Bearer ${token}` } });
-      const fd = new FormData();
-      fd.append('patientId', res.data.id); fd.append('file', file);
-      await axios.post('http://localhost:3000/api/patients/upload-zip', fd, { headers: { Authorization: `Bearer ${token}` } });
+      
+      let patientId = existingPatient?.id;
+      if (editMode) {
+        // Update Metadata
+        await axios.put(`http://localhost:3000/api/patients/${patientId}`, formData, { headers: { Authorization: `Bearer ${token}` } });
+      } else {
+        // Create Record
+        const res = await axios.post('http://localhost:3000/api/patients', formData, { headers: { Authorization: `Bearer ${token}` } });
+        patientId = res.data.id;
+      }
+
+      // If a new file is provided, upload it
+      if (file) {
+        const fd = new FormData();
+        fd.append('patientId', patientId); 
+        fd.append('file', file);
+        await axios.post('http://localhost:3000/api/patients/upload-zip', fd, { headers: { Authorization: `Bearer ${token}` } });
+      }
+
       setSuccess(true);
       setTimeout(() => navigate('/dashboard'), 2200);
     } catch (err) {
@@ -42,7 +67,7 @@ const PatientForm = () => {
       <div style={{ width: '6rem', height: '6rem', background: '#f0fdf4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem', boxShadow: '0 8px 32px rgba(16,185,129,0.15)' }}>
         <Check size={48} color="#10b981" strokeWidth={3} />
       </div>
-      <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#020817', letterSpacing: '-0.03em', marginBottom: '0.75rem' }}>Record Submitted</h2>
+      <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#020817', letterSpacing: '-0.03em', marginBottom: '0.75rem' }}>{editMode ? 'Record Updated' : 'Record Submitted'}</h2>
       <p style={{ color: '#94a3b8', fontWeight: 600 }}>Redirecting to your dashboard…</p>
     </div>
   );
@@ -67,8 +92,8 @@ const PatientForm = () => {
         {/* Dark Header */}
         <div style={{ background: '#020817', padding: '2.5rem 3rem', position: 'relative', overflow: 'hidden' }}>
           <Stethoscope size={140} style={{ position: 'absolute', bottom: '-2rem', right: '-2rem', color: 'rgba(255,255,255,0.04)', transform: 'rotate(15deg)', pointerEvents: 'none' }} />
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'white', letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>New Case Submission</h2>
-          <p style={{ color: '#64748b', fontWeight: 500 }}>Provide accurate metadata for proper radiological identification</p>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'white', letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>{editMode ? 'Edit Patient Record' : 'New Case Submission'}</h2>
+          <p style={{ color: '#64748b', fontWeight: 500 }}>Update or provide accurate metadata for proper radiological identification</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ padding: '3rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
@@ -91,19 +116,18 @@ const PatientForm = () => {
             </div>
 
             <div style={inputGroupStyle}>
-              <label style={labelStyle}>Analysis Protocol</label>
-              <div style={{ display: 'flex', gap: '0.625rem' }}>
-                {['MRI', 'CT', 'PET'].map(type => (
-                  <button key={type} type="button" onClick={() => setFormData({ ...formData, scanType: type })}
-                    style={{
-                      flex: 1, padding: '0.75rem', borderRadius: '0.875rem', border: 'none', cursor: 'pointer',
-                      fontWeight: 800, fontSize: '0.875rem', transition: 'all 0.15s',
-                      background: formData.scanType === type ? '#2563eb' : '#f4f7fb',
-                      color: formData.scanType === type ? 'white' : '#94a3b8',
-                      boxShadow: formData.scanType === type ? '0 4px 12px rgba(37,99,235,0.3)' : 'none',
-                    }}>{type}</button>
-                ))}
-              </div>
+              <label style={labelStyle}>Analysis Protocol (Scan Type)</label>
+              <select 
+                name="scanType" 
+                className="input-field" 
+                style={{ appearance: 'none', cursor: 'pointer' }} 
+                value={formData.scanType} 
+                onChange={handleChange}
+              >
+                <option value="MRI">MRI</option>
+                <option value="PET">PET</option>
+                <option value="CT">CT</option>
+              </select>
             </div>
           </div>
 
@@ -120,7 +144,7 @@ const PatientForm = () => {
             </div>
 
             <div style={inputGroupStyle}>
-              <label style={labelStyle}>Radiological Data Packet (ZIP)</label>
+              <label style={labelStyle}>Radiological Data Packet (ZIP) {editMode && '(Optional)'}</label>
               <div style={{
                 position: 'relative', border: `3px dashed ${file ? '#10b981' : '#e2eaf5'}`,
                 borderRadius: '1.25rem', padding: '2.25rem', textAlign: 'center',
@@ -131,7 +155,7 @@ const PatientForm = () => {
                 <div style={{ padding: '0.875rem', background: 'white', borderRadius: '1rem', display: 'inline-flex', marginBottom: '0.75rem', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', color: file ? '#10b981' : '#94a3b8' }}>
                   <Upload size={28} />
                 </div>
-                <p style={{ fontWeight: 800, color: file ? '#065f46' : '#334155', fontSize: '0.9375rem' }}>{file ? file.name : 'Drop ZIP file here or click to browse'}</p>
+                <p style={{ fontWeight: 800, color: file ? '#065f46' : '#334155', fontSize: '0.9375rem' }}>{file ? file.name : (editMode ? 'Click to replace existing ZIP' : 'Drop ZIP file here or click to browse')}</p>
                 <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.375rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Max 1.0GB · DICOM Format</p>
               </div>
             </div>
@@ -142,8 +166,8 @@ const PatientForm = () => {
             {error && <div style={{ padding: '0.875rem 1rem', background: '#fef2f2', borderLeft: '4px solid #ef4444', color: '#b91c1c', borderRadius: '0.75rem', marginBottom: '1.5rem', fontWeight: 600, fontSize: '0.875rem' }}>{error}</div>}
             <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', padding: '1.125rem', borderRadius: '1.25rem', fontSize: '1.0625rem', justifyContent: 'center', boxShadow: '0 8px 32px rgba(37,99,235,0.25)' }}>
               {loading
-                ? <><div style={{ width: '1.25rem', height: '1.25rem', border: '3px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /><span>Submitting…</span></>
-                : <><span>Submit Clinical Record</span><ChevronRight size={22} /></>
+                ? <><div style={{ width: '1.25rem', height: '1.25rem', border: '3px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /><span>{editMode ? 'Updating…' : 'Submitting…'}</span></>
+                : <><span>{editMode ? 'Update Clinical Record' : 'Submit Clinical Record'}</span><ChevronRight size={22} /></>
               }
             </button>
           </div>

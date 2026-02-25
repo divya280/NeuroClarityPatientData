@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Upload, Download, CheckCircle, ExternalLink, ShieldCheck, Activity, Users, Search, ClipboardList } from 'lucide-react';
+import { Upload, Download, CheckCircle, ExternalLink, ShieldCheck, Activity, Users, Search, ClipboardList, Trash2, Edit2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const [patients, setPatients] = useState([]);
@@ -9,6 +10,7 @@ const AdminDashboard = () => {
   const [search, setSearch] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
   const { getToken } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => { fetchPatients(); }, []);
 
@@ -42,6 +44,20 @@ const AdminDashboard = () => {
       fetchPatients();
     } catch { alert('PDF upload failed.'); }
     finally { setUpdatingId(null); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('ADMIN ALERT: Are you sure you want to delete this record and ALL associated files? This cannot be undone.')) return;
+    setUpdatingId(id);
+    try {
+      const token = await getToken();
+      await axios.delete(`http://localhost:3000/api/patients/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchPatients();
+    } catch { 
+      alert('Delete failed.'); 
+    } finally { 
+      setUpdatingId(null); 
+    }
   };
 
   if (loading) return (
@@ -95,7 +111,7 @@ const AdminDashboard = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
             <thead>
               <tr style={{ background: '#f8fafc' }}>
-                {['Patient / Case', 'Scan & Metadata', 'Raw Data', 'Status Control', 'Report Action'].map(h => (
+                {['Patient / Case', 'Scan & Metadata', 'Raw Data', 'Status Control', 'Report Action', 'Manage'].map(h => (
                   <th key={h} style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</th>
                 ))}
               </tr>
@@ -137,7 +153,7 @@ const AdminDashboard = () => {
                               fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', transition: 'all 0.15s',
                               background: p.status === st ? (st === 'In progress' ? '#2563eb' : '#020817') : 'transparent',
                               color: p.status === st ? 'white' : '#94a3b8',
-                            }}>{st === 'In progress' ? 'Analysis' : 'Queue'}</button>
+                            }}>{st}</button>
                         ))
                       ) : (
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.875rem', background: '#10b981', color: 'white', borderRadius: '0.625rem', fontSize: '0.7rem', fontWeight: 800 }}>
@@ -158,6 +174,25 @@ const AdminDashboard = () => {
                           </button>
                         </div>
                       )}
+                  </td>
+                  <td style={{ padding: '1.125rem 1.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button 
+                        onClick={() => navigate('/patient-form', { state: { editMode: true, patient: p } })}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6366f1', padding: '0.25rem' }}
+                        title="Edit Record"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(p.id)}
+                        disabled={updatingId === p.id}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0.25rem', opacity: updatingId === p.id ? 0.5 : 1 }}
+                        title="Delete Record"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
