@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { User, Mail, Lock, ShieldCheck, Activity, ArrowRight, UserCheck, UserPlus } from 'lucide-react';
+import { API_BASE_URL } from '../api.config';
 
 const Signup = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'endUser' });
@@ -16,7 +17,7 @@ const Signup = () => {
     setError('');
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:3000/api/auth/signup', formData);
+      const res = await axios.post(`${API_BASE_URL}/api/auth/signup`, formData);
       if (res.status === 201) navigate('/login?signup=success');
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');

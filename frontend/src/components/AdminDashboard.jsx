@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { Upload, Download, CheckCircle, ExternalLink, ShieldCheck, Activity, Users, Search, ClipboardList, Trash2, Edit2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../api.config';
 
 const AdminDashboard = () => {
   const [patients, setPatients] = useState([]);
@@ -17,7 +18,7 @@ const AdminDashboard = () => {
   const fetchPatients = async () => {
     try {
       const token = await getToken();
-      const res = await axios.get('http://localhost:3000/api/patients', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`${API_BASE_URL}/api/patients`, { headers: { Authorization: `Bearer ${token}` } });
       setPatients(res.data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -27,7 +28,7 @@ const AdminDashboard = () => {
     setUpdatingId(id);
     try {
       const token = await getToken();
-      await axios.patch(`http://localhost:3000/api/patients/${id}/status`, { status }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.patch(`${API_BASE_URL}/api/patients/${id}/status`, { status }, { headers: { Authorization: `Bearer ${token}` } });
       fetchPatients();
     } catch { alert('Status update failed.'); }
     finally { setUpdatingId(null); }
@@ -40,7 +41,7 @@ const AdminDashboard = () => {
     fd.append('file', file);
     try {
       const token = await getToken();
-      await axios.post(`http://localhost:3000/api/patients/${id}/upload-pdf`, fd, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } });
+      await axios.post(`${API_BASE_URL}/api/patients/${id}/upload-pdf`, fd, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } });
       fetchPatients();
     } catch { alert('PDF upload failed.'); }
     finally { setUpdatingId(null); }
@@ -51,7 +52,7 @@ const AdminDashboard = () => {
     setUpdatingId(id);
     try {
       const token = await getToken();
-      await axios.delete(`http://localhost:3000/api/patients/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(`${API_BASE_URL}/api/patients/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchPatients();
     } catch { 
       alert('Delete failed.'); 

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Clipboard, Upload, Check, ArrowLeft, Stethoscope, ChevronRight, ShieldCheck } from 'lucide-react';
+import { API_BASE_URL } from '../api.config';
 
 const PatientForm = () => {
   const navigate = useNavigate();
@@ -40,10 +41,10 @@ const PatientForm = () => {
       let patientId = existingPatient?.id;
       if (editMode) {
         // Update Metadata
-        await axios.put(`http://localhost:3000/api/patients/${patientId}`, formData, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.put(`${API_BASE_URL}/api/patients/${patientId}`, formData, { headers: { Authorization: `Bearer ${token}` } });
       } else {
         // Create Record
-        const res = await axios.post('http://localhost:3000/api/patients', formData, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await axios.post(`${API_BASE_URL}/api/patients`, formData, { headers: { Authorization: `Bearer ${token}` } });
         patientId = res.data.id;
       }
 
@@ -52,7 +53,7 @@ const PatientForm = () => {
         const fd = new FormData();
         fd.append('patientId', patientId); 
         fd.append('file', file);
-        await axios.post('http://localhost:3000/api/patients/upload-zip', fd, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.post(`${API_BASE_URL}/api/patients/upload-zip`, fd, { headers: { Authorization: `Bearer ${token}` } });
       }
 
       setSuccess(true);

@@ -46,11 +46,17 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal Server Error" });
 });
 
-app.listen(PORT, () => {
-  console.log(`\n--- NeuroClarity Hybrid Backend Running ---`);
-  console.log(`Server: http://localhost:${PORT}`);
-  console.log(`Using Service Account credentials.`);
-  console.log(`\nRoutes Configured:`);
-  console.log(`- Auth: /api/auth (signup, login, logout, me)`);
-  console.log(`- Patients: /api/patients (CRUD, uploads)`);
-});
+// For Vercel, we export the app
+export default app;
+
+// Only listen if not running in a serverless environment (determined by presence of PORT or running via direct node call)
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`\n--- NeuroClarity Hybrid Backend Running ---`);
+    console.log(`Server: http://localhost:${PORT}`);
+    console.log(`Using Service Account credentials.`);
+    console.log(`\nRoutes Configured:`);
+    console.log(`- Auth: /api/auth (signup, login, logout, me)`);
+    console.log(`- Patients: /api/patients (CRUD, uploads)`);
+  });
+}

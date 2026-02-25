@@ -1,0 +1,11 @@
+{
+  "name": "neuroclarity-monorepo",
+  "private": true,
+  "scripts": {
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "build:frontend": "cd frontend && npm run build",
+    "install": "npm run install:backend && npm run install:frontend",
+    "build": "npm run build:frontend"
+  }
+}

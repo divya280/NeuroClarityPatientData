@@ -6,18 +6,37 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const serviceAccountPath = path.resolve(__dirname, "../../serviceAccountKey.json");
+let serviceAccount;
 
-if (!fs.existsSync(serviceAccountPath)) {
-  console.warn("WARNING: serviceAccountKey.json not found! Firebase Admin might not work correctly.");
+// Check for Environment Variable first (Vercel/Production)
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    console.log("Firebase initialized using environment variable.");
+  } catch (error) {
+    console.error("ERROR parsing FIREBASE_SERVICE_ACCOUNT env var:", error.message);
+  }
 }
 
-const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
+// Fallback to local file
+if (!serviceAccount) {
+  const serviceAccountPath = path.resolve(__dirname, "../../serviceAccountKey.json");
+  if (fs.existsSync(serviceAccountPath)) {
+    serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
+    console.log("Firebase initialized using serviceAccountKey.json.");
+  } else {
+    console.warn("WARNING: Firebase Service Account not found! Admin features will fail.");
+  }
+}
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: "patientdata-cfbbe.firebasestorage.app"
-});
+if (serviceAccount) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: "patientdata-cfbbe.firebasestorage.app"
+  });
+} else {
+  console.error("CRITICAL: Firebase could not be initialized. Missing credentials.");
+}
 
 export const db = admin.firestore();
 export const auth = admin.auth();

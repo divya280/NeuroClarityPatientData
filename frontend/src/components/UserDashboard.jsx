@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { FileText, Download, Clock, CheckCircle, AlertCircle, Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../api.config';
 
 const getStatusStyle = (status) => {
   switch(status) {
@@ -32,7 +33,7 @@ const UserDashboard = () => {
   const fetchPatients = async () => {
     try {
       const token = await getToken();
-      const res = await axios.get('http://localhost:3000/api/patients', { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`${API_BASE_URL}/api/patients`, { headers: { Authorization: `Bearer ${token}` } });
       setPatients(res.data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -42,7 +43,7 @@ const UserDashboard = () => {
     if (!window.confirm('Are you sure you want to delete this record? This will also remove all associated files.')) return;
     try {
       const token = await getToken();
-      await axios.delete(`http://localhost:3000/api/patients/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(`${API_BASE_URL}/api/patients/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchPatients();
     } catch (err) {
       alert('Failed to delete record: ' + (err.response?.data?.error || err.message));

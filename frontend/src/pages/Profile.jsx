@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Shield, Calendar, MapPin, Edit3, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../api.config';
 
 const Profile = () => {
   const { user, role, getToken } = useAuth();
@@ -13,7 +14,7 @@ const Profile = () => {
     const fetchStats = async () => {
       try {
         const token = await getToken();
-        const res = await axios.get('http://localhost:3000/api/patients', { 
+        const res = await axios.get(`${API_BASE_URL}/api/patients`, { 
           headers: { Authorization: `Bearer ${token}` } 
         });
         setPatientCount(res.data.length);
