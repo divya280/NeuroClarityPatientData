@@ -34,7 +34,12 @@ app.use(
 
 // Diagnostics and Logging
 app.use((req, res, next) => {
-  console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
+  });
+  
   if (req.method === 'OPTIONS') {
     console.log("Preflight Request Received from:", req.headers.origin);
   }

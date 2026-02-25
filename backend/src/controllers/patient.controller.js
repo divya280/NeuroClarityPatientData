@@ -35,15 +35,22 @@ export const createPatient = async (req, res) => {
  * Admin: returns all patients.
  */
 export const getPatients = async (req, res) => {
+  const { uid, role } = req.user;
+  console.log(`[getPatients] Fetching records for UID: ${uid}, Role: ${role}`);
+
   try {
     let query = db.collection("patients");
 
     // Role-based filtering
-    if (req.user.role !== "admin") {
-      query = query.where("createdBy", "==", req.user.uid);
+    if (role !== "admin") {
+      console.log(`[getPatients] Filtering by ownership (uid: ${uid})`);
+      query = query.where("createdBy", "==", uid);
+    } else {
+      console.log(`[getPatients] Admin access: fetching all records`);
     }
 
     const snapshot = await query.get();
+    console.log(`[getPatients] Found ${snapshot.size} records.`);
     const patients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     res.json(patients);
