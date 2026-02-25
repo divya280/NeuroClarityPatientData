@@ -40,6 +40,7 @@ NeuroClarity/
 - Firebase **Service Account Key** (save as `backend/serviceAccountKey.json`).
 
 ### 2. Environment Variables
+Create a `backend/serviceAccountKey.json` file:
 Create a `frontend/.env` file:
 ```env
 VITE_FIREBASE_API_KEY=AIzaSyAM1-WKAa_gymUhxKs1fsljvww-HZD7hXw
