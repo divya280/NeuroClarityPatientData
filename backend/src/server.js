@@ -8,13 +8,49 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 
-// Simple logging
+// Flexible CORS for Vercel and Development
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "https://neuro-clarity-patient-data-zw63.vercel.app" // Direct link as fallback
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
+
+// Diagnostics and Logging
 app.use((req, res, next) => {
   console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+  if (req.method === 'OPTIONS') {
+    console.log("Preflight Request Received from:", req.headers.origin);
+  }
   next();
+});
+
+// Environment Status Route
+app.get("/api/sys-status", (req, res) => {
+  res.json({
+    status: "ok",
+    env: {
+      has_service_account: !!process.env.FIREBASE_SERVICE_ACCOUNT,
+      frontend_url: process.env.FRONTEND_URL || "NOT_SET",
+      node_env: process.env.NODE_ENV
+    }
+  });
 });
 
 // Routes
