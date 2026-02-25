@@ -20,23 +20,32 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Fetch role from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        const userData = userDoc.exists() ? userDoc.data() : { role: 'endUser' };
-        
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName || userData.name,
-          ...userData
-        });
-        setRole(userData.role);
-      } else {
-        setUser(null);
-        setRole(null);
+      try {
+        if (firebaseUser) {
+          // Fetch role from Firestore with a simple timeout/catch
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid)).catch(err => {
+            console.warn("Firestore role fetch failed:", err);
+            return { exists: () => false };
+          });
+          
+          const userData = userDoc.exists() ? userDoc.data() : { role: 'endUser' };
+          
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName || userData.name,
+            ...userData
+          });
+          setRole(userData.role);
+        } else {
+          setUser(null);
+          setRole(null);
+        }
+      } catch (error) {
+        console.error("Auth Initialization Error:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();

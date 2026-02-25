@@ -17,7 +17,8 @@ const Profile = () => {
         const res = await axios.get(`${API_BASE_URL}/api/patients`, { 
           headers: { Authorization: `Bearer ${token}` } 
         });
-        setPatientCount(res.data.length);
+        const data = Array.isArray(res.data) ? res.data : [];
+        setPatientCount(data.length);
       } catch (e) {
         console.error("Failed to fetch profile stats:", e);
       }

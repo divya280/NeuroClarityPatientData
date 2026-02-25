@@ -34,8 +34,11 @@ const UserDashboard = () => {
     try {
       const token = await getToken();
       const res = await axios.get(`${API_BASE_URL}/api/patients`, { headers: { Authorization: `Bearer ${token}` } });
-      setPatients(res.data);
-    } catch (e) { console.error(e); }
+      setPatients(Array.isArray(res.data) ? res.data : []);
+    } catch (e) { 
+      console.error("Fetch Patients Error:", e);
+      setPatients([]);
+    }
     finally { setLoading(false); }
   };
 
@@ -50,7 +53,11 @@ const UserDashboard = () => {
     }
   };
 
-  const filtered = patients.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.scanType.toLowerCase().includes(search.toLowerCase()));
+  const patientList = Array.isArray(patients) ? patients : [];
+  const filtered = patientList.filter(p => 
+    p.name?.toLowerCase().includes(search.toLowerCase()) || 
+    p.scanType?.toLowerCase().includes(search.toLowerCase())
+  );
 
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '1rem' }}>
@@ -60,10 +67,10 @@ const UserDashboard = () => {
   );
 
   const statCards = [
-    { label: 'Total Records', val: patients.length, color: '#2563eb' },
-    { label: 'Pending', val: patients.filter(p => p.status === 'To do').length, color: '#94a3b8' },
-    { label: 'In Analysis', val: patients.filter(p => p.status === 'In progress').length, color: '#6366f1' },
-    { label: 'Completed', val: patients.filter(p => p.status === 'Completed').length, color: '#10b981' },
+    { label: 'Total Records', val: patientList.length, color: '#2563eb' },
+    { label: 'Pending', val: patientList.filter(p => p.status === 'To do').length, color: '#94a3b8' },
+    { label: 'In Analysis', val: patientList.filter(p => p.status === 'In progress').length, color: '#6366f1' },
+    { label: 'Completed', val: patientList.filter(p => p.status === 'Completed').length, color: '#10b981' },
   ];
 
   return (

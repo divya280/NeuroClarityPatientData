@@ -19,8 +19,11 @@ const AdminDashboard = () => {
     try {
       const token = await getToken();
       const res = await axios.get(`${API_BASE_URL}/api/patients`, { headers: { Authorization: `Bearer ${token}` } });
-      setPatients(res.data);
-    } catch (e) { console.error(e); }
+      setPatients(Array.isArray(res.data) ? res.data : []);
+    } catch (e) { 
+      console.error("Admin Fetch Error:", e);
+      setPatients([]);
+    }
     finally { setLoading(false); }
   };
 
@@ -68,7 +71,11 @@ const AdminDashboard = () => {
     </div>
   );
 
-  const filtered = patients.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) || p.scanType.toLowerCase().includes(search.toLowerCase()));
+  const patientList = Array.isArray(patients) ? patients : [];
+  const filtered = patientList.filter(p => 
+    p.name?.toLowerCase().includes(search.toLowerCase()) || 
+    p.scanType?.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
@@ -92,9 +99,9 @@ const AdminDashboard = () => {
       {/* Stat Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
         {[
-          { label: 'Incoming Queue', val: patients.filter(p => p.status === 'To do').length, icon: <ClipboardList size={22} />, color: '#2563eb' },
-          { label: 'Active Analysis', val: patients.filter(p => p.status === 'In progress').length, icon: <Activity size={22} />, color: '#6366f1' },
-          { label: 'Reports Finalized', val: patients.filter(p => p.status === 'Completed').length, icon: <CheckCircle size={22} />, color: '#10b981' },
+          { label: 'Incoming Queue', val: patientList.filter(p => p.status === 'To do').length, icon: <ClipboardList size={22} />, color: '#2563eb' },
+          { label: 'Active Analysis', val: patientList.filter(p => p.status === 'In progress').length, icon: <Activity size={22} />, color: '#6366f1' },
+          { label: 'Reports Finalized', val: patientList.filter(p => p.status === 'Completed').length, icon: <CheckCircle size={22} />, color: '#10b981' },
         ].map((s, i) => (
           <div key={i} style={{ background: 'linear-gradient(135deg, #f8fafc, #eff6ff)', border: '1px solid #e2eaf5', padding: '2rem', borderRadius: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
