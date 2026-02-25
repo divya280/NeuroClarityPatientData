@@ -35,6 +35,7 @@ NeuroClarity/
 ## 🛠️ Execution Guide
 
 ### 1. Prerequisites
+- Clone the repository
 - Node.js (v18+)
 - A Firebase Project with Firestore, Auth, and Storage enabled.
 - Firebase **Service Account Key** (save as `backend/serviceAccountKey.json`).
