@@ -8,7 +8,8 @@ import {
   LogOut,
   Activity,
   ChevronRight,
-  X
+  X,
+  Linkedin
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -19,6 +20,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'endUser'] },
     { name: 'New Patient', path: '/patient-form', icon: UserPlus, roles: ['endUser'] },
     { name: 'Admin Panel', path: '/admin', icon: ShieldAlert, roles: ['admin'] },
+    { name: 'Profile', path: '/profile', icon: Activity, roles: ['admin', 'endUser'] },
   ];
 
   return (
@@ -123,6 +125,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               padding: '0.75rem 1rem', color: '#ef4444', background: 'transparent',
               border: 'none', borderRadius: '0.875rem', cursor: 'pointer',
               fontWeight: 700, fontSize: '0.9375rem', transition: 'background 0.15s',
+              marginBottom: '1rem'
             }}
             onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -130,6 +133,29 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             <LogOut size={20} />
             <span>Sign Out</span>
           </button>
+
+          {/* Developer Credit */}
+          <div style={{ textAlign: 'center', padding: '0.5rem 0' }}>
+            <a 
+              href="https://www.linkedin.com/in/divyashree-v-1245a71b8/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ 
+                fontSize: '0.7rem', 
+                color: '#94a3b8', 
+                textDecoration: 'none', 
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}
+              onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
+            >
+              <Linkedin size={12} />
+              Developed by <span style={{ fontWeight: 800 }}>Divyashree V</span>
+            </a>
+          </div>
         </div>
       </aside>
     </>

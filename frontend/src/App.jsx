@@ -10,18 +10,20 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import PatientForm from './pages/PatientForm';
 import AdminDashboard from './components/AdminDashboard';
+import Profile from './pages/Profile';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, role, loading } = useAuth();
-  if (loading) return null; // Avoid flicker
-  if (!user) return <Navigate to="/login" />;
-  if (allowedRoles && !allowedRoles.includes(role)) return <Navigate to="/dashboard" />;
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (allowedRoles && !allowedRoles.includes(role)) return <Navigate to="/dashboard" replace />;
   return <AppLayout>{children}</AppLayout>;
 };
 
 const PublicLayout = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
+  if (user) return <Navigate to="/dashboard" replace />;
   return (
     <>
       <Navbar />
@@ -56,6 +58,12 @@ function App() {
           <Route path="/admin" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           } />
 

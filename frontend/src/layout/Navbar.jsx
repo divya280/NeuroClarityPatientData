@@ -24,12 +24,7 @@ const Navbar = () => {
       </Link>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        {user ? (
-          <>
-            <Link to="/dashboard" className="btn-secondary" style={{ padding: '0.5rem 1.25rem', borderRadius: '0.75rem', fontSize: '0.875rem' }}>Dashboard</Link>
-            <button onClick={logout} className="btn-primary" style={{ padding: '0.5rem 1.25rem', borderRadius: '0.75rem', fontSize: '0.875rem' }}>Sign Out</button>
-          </>
-        ) : (
+        {!user && (
           <>
             <Link to="/login" className="btn-secondary" style={{ padding: '0.5rem 1.25rem', borderRadius: '0.75rem', fontSize: '0.875rem' }}>Login</Link>
             <Link to="/signup" className="btn-primary" style={{ padding: '0.5rem 1.25rem', borderRadius: '0.75rem', fontSize: '0.875rem' }}>Sign Up <ArrowRight size={14} /></Link>

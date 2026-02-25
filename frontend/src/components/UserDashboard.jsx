@@ -24,6 +24,7 @@ const UserDashboard = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const { getToken } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => { fetchPatients(); }, []);
@@ -157,20 +158,46 @@ const UserDashboard = () => {
                         )}
                       </td>
                       <td style={{ padding: '1rem 1.5rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.625rem' }}>
                           <button 
                             onClick={() => navigate('/patient-form', { state: { editMode: true, patient: p } })}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6366f1', padding: '0.25rem' }}
+                            style={{ 
+                              background: '#f8fafc', 
+                              border: '1px solid #e2eaf5', 
+                              borderRadius: '0.625rem',
+                              cursor: 'pointer', 
+                              color: '#6366f1', 
+                              padding: '0.5rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
+                            onMouseLeave={e => e.currentTarget.style.background = '#f8fafc'}
                             title="Edit Record"
                           >
-                            <Edit2 size={16} />
+                            <Edit2 size={15} />
                           </button>
                           <button 
                             onClick={() => handleDelete(p.id)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0.25rem' }}
+                            style={{ 
+                              background: '#f8fafc', 
+                              border: '1px solid #fee2e2', 
+                              borderRadius: '0.625rem',
+                              cursor: 'pointer', 
+                              color: '#ef4444', 
+                              padding: '0.5rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
+                            onMouseLeave={e => e.currentTarget.style.background = '#f8fafc'}
                             title="Delete Record"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </td>

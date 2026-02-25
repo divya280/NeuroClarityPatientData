@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, Shield, Database, UploadCloud, ArrowRight, Zap, CheckCircle } from 'lucide-react';
+import { Activity, Shield, Database, UploadCloud, ArrowRight, Zap, CheckCircle, Linkedin } from 'lucide-react';
 
 const Home = () => {
   const styles = {
@@ -153,6 +153,41 @@ const Home = () => {
           <CheckCircle size={14} /> HIPAA Compliant Infrastructure
         </div>
       </section>
+
+      {/* Footer */}
+      <footer style={{ 
+        padding: '4rem 1.5rem', 
+        borderTop: '1px solid #e2eaf5', 
+        textAlign: 'center',
+        background: '#f8fafc'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+          <Activity size={20} color="#2563eb" />
+          <span style={{ fontSize: '1.125rem', fontWeight: 900, color: '#020817', letterSpacing: '-0.02em' }}>NeuroClarity</span>
+        </div>
+        <p style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: 500, marginBottom: '1rem' }}>
+          &copy; 2026 NeuroClarity Clinical Platform. All rights reserved.
+        </p>
+        <a 
+          href="https://www.linkedin.com/in/divyashree-v-1245a71b8/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          style={{ 
+            fontSize: '0.875rem', 
+            color: '#64748b', 
+            textDecoration: 'none', 
+            fontWeight: 700,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}
+          onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
+        >
+          <Linkedin size={16} />
+          Developed by Divyashree V
+        </a>
+      </footer>
     </div>
   );
 };
